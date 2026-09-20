@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIF Optimizer — FNF Style</title>
+<style>
+:root{
+  --bg:#08090d;--panel:#11131a;--panel2:#171a23;--line:#292e3b;
+  --accent:#ff1744;--accent2:#ff4f70;--text:#f5f7fb;--muted:#969dac;
+  --good:#62ff9b;--shadow:0 20px 70px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(255,23,68,.16),transparent 28%),
+    radial-gradient(circle at 85% 25%,rgba(255,23,68,.09),transparent 25%),
+    linear-gradient(135deg,#07080b,#0d1017 55%,#08090d);
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:32px 32px}
+.wrap{width:min(1120px,92%);margin:auto}
+.hero{padding:64px 0 32px;text-align:center}
+.badge{display:inline-flex;gap:8px;align-items:center;padding:8px 13px;border:1px solid #3a2028;background:#160e12;border-radius:999px;color:#ff8ba0;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.dot{width:7px;height:7px;background:var(--accent);border-radius:50%;box-shadow:0 0 15px var(--accent);animation:pulse 1.4s infinite}
+h1{font-size:clamp(42px,8vw,82px);line-height:.95;margin:20px 0 14px;font-weight:950;letter-spacing:-.06em;text-shadow:0 0 35px rgba(255,23,68,.22)}
+h1 span{color:var(--accent)}
+.hero p{max-width:650px;margin:0 auto;color:var(--muted);font-size:17px}
+.app{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:25px 0 70px}
+.card{background:linear-gradient(145deg,rgba(23,26,35,.96),rgba(13,15,21,.96));border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(15px);animation:rise .6s ease both}
+.card h2{margin:0 0 5px;font-size:20px}.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+.drop{
+  min-height:185px;border:1.5px dashed #454b5b;border-radius:18px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;background:#0c0f15;cursor:pointer;transition:.2s;
+}
+.drop:hover,.drop.drag{border-color:var(--accent);background:#160d12;box-shadow:inset 0 0 35px rgba(255,23,68,.08)}
+.uploadIcon{font-size:42px}.drop strong{font-size:16px}.drop small{color:var(--muted)}
+input[type=file]{display:none}
+.fileName{margin-top:12px;padding:10px 12px;background:#0b0d12;border:1px solid var(--line);border-radius:12px;color:#dfe3eb;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.control{padding:14px;background:#0d1016;border:1px solid var(--line);border-radius:15px}
+.control label{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:9px}.value{color:#ff728a}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=number]{width:100%;background:#090b10;color:white;border:1px solid #343947;border-radius:9px;padding:8px}
+.actions{display:flex;gap:10px;margin-top:16px}
+button{border:0;border-radius:13px;padding:13px 18px;font-weight:900;cursor:pointer;color:white;transition:.18s}
+.primary{flex:1;background:linear-gradient(135deg,#ff1744,#d90d35);box-shadow:0 8px 25px rgba(255,23,68,.2)}
+.primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,23,68,.35)}
+.secondary{background:#242936;border:1px solid #363c4a}.secondary:hover{background:#2c3240}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.preview{min-height:410px;display:flex;flex-direction:column}
+.previewBox{flex:1;min-height:290px;border-radius:18px;background:repeating-conic-gradient(#151922 0 25%,#10131a 0 50%) 50%/24px 24px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line)}
+.previewBox canvas{max-width:100%;max-height:300px;image-rendering:auto;box-shadow:0 10px 40px #000}
+.placeholder{text-align:center;color:#676e7d}.placeholder div{font-size:46px;margin-bottom:7px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.stat{padding:11px;background:#0d1016;border:1px solid var(--line);border-radius:12px}.stat small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.stat b{display:block;margin-top:3px;font-size:15px}
+.progressWrap{margin-top:15px;display:none}.progressTop{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:7px}.bar{height:8px;background:#090b10;border-radius:99px;overflow:hidden;border:1px solid var(--line)}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#ff7990);box-shadow:0 0 16px var(--accent);transition:width .15s}
+.download{display:none;margin-top:12px;text-decoration:none;text-align:center;padding:13px;border-radius:13px;background:#14251b;color:var(--good);border:1px solid #245b38;font-weight:900}
+.features{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.feature{padding:18px;background:rgba(17,19,26,.8);border:1px solid var(--line);border-radius:18px}.feature b{display:block;margin-bottom:6px}.feature span{color:var(--muted);font-size:13px}
+footer{text-align:center;color:#5f6674;font-size:12px;padding:0 0 35px}
+@keyframes pulse{50%{opacity:.35;transform:scale(.7)}}@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media(max-width:800px){.app{grid-template-columns:1fr}.features{grid-column:auto;grid-template-columns:1fr}.preview{min-height:390px}.hero{padding-top:40px}}
+@media(max-width:500px){.controls{grid-template-columns:1fr}.actions{flex-direction:column}.stats{grid-template-columns:1fr 1fr 1fr}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header class="hero wrap">
+  <div class="badge"><i class="dot"></i> GIF TOOL • FNF STYLE</div>
+  <h1>GIF <span>OPTIMIZER</span></h1>
+  <p>Compress, resize and preview your GIFs with a slick gaming-style workflow. Everything runs directly in your browser.</p>
+</header>
+
+<main class="wrap app">
+<section class="card">
+  <h2>Optimize GIF</h2><p class="sub">Drop a GIF below, tune the settings, then export it.</p>
+
+  <label class="drop" id="drop">
+    <div class="uploadIcon">🎞️</div><strong>Drop your GIF here</strong><small>or tap to choose a file</small>
+    <input id="upload" type="file" accept="image/gif">
+  </label>
+  <div class="fileName" id="fileName">No GIF selected</div>
+
+  <div class="controls">
+    <div class="control">
+      <label>Colors <span class="value" id="colorsVal">64</span></label>
+      <input id="colors" type="range" min="2" max="256" value="64">
+    </div>
+    <div class="control">
+      <label>Scale <span class="value" id="scaleVal">50%</span></label>
+      <input id="scale" type="range" min="10" max="100" value="50">
+    </div>
+    <div class="control">
+      <label>Frame Skip <span class="value" id="skipVal">1×</span></label>
+      <input id="skip" type="range" min="1" max="5" value="1">
+    </div>
+    <div class="control">
+      <label>Quality <span class="value" id="qualityVal">70%</span></label>
+      <input id="quality" type="range" min="10" max="100" value="70">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="optimize">⚡ Optimize GIF</button>
+    <button class="secondary" id="reset">↺ Reset</button>
+  </div>
+
+  <div class="progressWrap" id="progressWrap">
+    <div class="progressTop"><span id="status">Preparing…</span><b id="percent">0%</b></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+  </div>
+  <a class="download" id="download">⬇ Download Optimized GIF</a>
+</section>
+
+<section class="card preview">
+  <h2>Live Preview</h2><p class="sub">Your source GIF and optimized result appear here.</p>
+  <div class="previewBox" id="previewBox">
+    <div class="placeholder" id="placeholder"><div>👾</div><span>Upload a GIF to preview it</span></div>
+    <canvas id="canvas" hidden></canvas>
+  </div>
+  <div class="stats">
+    <div class="stat"><small>Original</small><b id="originalSize">—</b></div>
+    <div class="stat"><small>Output</small><b id="outputSize">—</b></div>
+    <div class="stat"><small>Saved</small><b id="saved">—</b></div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">🎨 <b>Smart Controls</b><span>Adjust colors, scale, frame skipping and quality.</span></div>
+  <div class="feature">⚡ <b>Instant Preview</b><span>See the GIF dimensions and result right in the dashboard.</span></div>
+  <div class="feature">🔒 <b>Browser Based</b><span>Your GIF is processed locally instead of being uploaded to a server.</span></div>
+</section>
+</main>
+<footer>GIF Optimizer • Built for creators, modders & developers</footer>
+
+<script type="module">
+import { parseGIF, decompressFrames } from "https://esm.sh/gifuct-js@2.1.2";
+window.GifDecoder = { parseGIF, decompressFrames };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const upload=$("upload"), drop=$("drop"), canvas=$("canvas"), ctx=canvas.getContext("2d");
+let selectedFile=null, resultUrl=null;
+
+function fmt(bytes){if(!bytes)return "0 B";const u=["B","KB","MB","GB"];const i=Math.floor(Math.log(bytes)/Math.log(1024));return (bytes/Math.pow(1024,i)).toFixed(i?1:0)+" "+u[i]}
+function setProgress(n,msg){$("progressWrap").style.display="block";$("fill").style.width=n+"%";$("percent").textContent=Math.round(n)+"%";$("status").textContent=msg}
+function updateLabels(){
+  $("colorsVal").textContent=$("colors").value;
+  $("scaleVal").textContent=$("scale").value+"%";
+  $("skipVal").textContent=$("skip").value+"×";
+  $("qualityVal").textContent=$("quality").value+"%";
+}
+["colors","scale","skip","quality"].forEach(x=>$(x).addEventListener("input",updateLabels)); updateLabels();
+
+function choose(file){
+  if(!file || !file.type.includes("gif")) return alert("Please choose a GIF file.");
+  selectedFile=file;$("fileName").textContent=file.name+" • "+fmt(file.size);
+  $("originalSize").textContent=fmt(file.size); $("outputSize").textContent="—"; $("saved").textContent="—";
+  $("placeholder").hidden=true; canvas.hidden=false;
+  const img=new Image();img.onload=()=>{canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;ctx.drawImage(img,0,0);URL.revokeObjectURL(img.src)};img.src=URL.createObjectURL(file);
+}
+upload.addEventListener("change",e=>choose(e.target.files[0]));
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag")}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag")}));
+drop.addEventListener("drop",e=>choose(e.dataTransfer.files[0]));
+
+$("reset").onclick=()=>{
+  selectedFile=null;upload.value="";$("fileName").textContent="No GIF selected";$("placeholder").hidden=false;canvas.hidden=true;
+  $("download").style.display="none";$("progressWrap").style.display="none";$("originalSize").textContent="—";$("outputSize").textContent="—";$("saved").textContent="—";
+};
+
+$("optimize").onclick=async()=>{
+  if(!selectedFile)return alert("Upload a GIF first!");
+  const btn=$("optimize");btn.disabled=true;$("download").style.display="none";
+  try{
+    setProgress(5,"Reading GIF…");
+    const buffer=await selectedFile.arrayBuffer();
+    if(!window.GifDecoder) throw new Error("GIF decoder is still loading. Please wait a second and try again.");
+    const gif=window.GifDecoder.parseGIF(buffer);
+    const frames=window.GifDecoder.decompressFrames(gif,true);
+    if(!frames.length)throw new Error("No frames found.");
+
+    const scale=Number($("scale").value)/100;
+    const skip=Number($("skip").value);
+    const quality=Math.max(1,Math.round(31-(Number($("quality").value)*30/100)));
+    const width=Math.max(1,Math.round(frames[0].dims.width*scale));
+    const height=Math.max(1,Math.round(frames[0].dims.height*scale));
+    canvas.width=width;canvas.height=height;
+
+    const encoder=new GIF({
+      workers:2,
+      quality,
+      width,
+      height,
+      workerScript:"https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.worker.js"
+    });
+    const used=frames.filter((_,i)=>i%skip===0);
+    used.forEach((frame,index)=>{
+      const src=document.createElement("canvas");src.width=frame.dims.width;src.height=frame.dims.height;
+      const sctx=src.getContext("2d");const imageData=sctx.createImageData(frame.dims.width,frame.dims.height);
+      imageData.data.set(frame.patch);sctx.putImageData(imageData,0,0);
+      ctx.clearRect(0,0,width,height);ctx.drawImage(src,0,0,width,height);
+      encoder.addFrame(ctx,{delay:(frame.delay||100)*skip,copy:true});
+      setProgress(10+(index/used.length)*65,"Encoding frame "+(index+1)+" / "+used.length);
+    });
+    encoder.on("progress",p=>setProgress(75+p*20,"Rendering optimized GIF…"));
+    encoder.on("finished",blob=>{
+      resultUrl&&URL.revokeObjectURL(resultUrl);resultUrl=URL.createObjectURL(blob);
+      const link=$("download");link.href=resultUrl;link.download="optimized.gif";link.style.display="block";
+      $("outputSize").textContent=fmt(blob.size);
+      const saved=Math.max(0,100-(blob.size/selectedFile.size*100));
+      $("saved").textContent=saved.toFixed(1)+"%";
+      setProgress(100,"Optimization complete!");
+      btn.disabled=false;
+    });
+    encoder.render();
+  }catch(err){
+    console.error(err);alert("Could not optimize this GIF: "+err.message);btn.disabled=false;$("progressWrap").style.display="none";
+  }
+};
+</script>
+</body>
+</html>
