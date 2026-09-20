@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GIF Optimizer (FNF Style)</title>
+</head>
+<body style="background:#111;color:white;font-family:sans-serif;text-align:center">
+
+<h2>GIF Optimizer (FNF Style)</h2>
+
+<input type="file" id="upload" accept="image/gif"><br><br>
+
+<label>Colors:</label>
+<input type="number" id="colors" value="64" min="2" max="256"><br><br>
+
+<label>Scale (0.1 - 1):</label>
+<input type="number" id="scale" value="0.5" step="0.1"><br><br>
+
+<label>Frame Skip (1 = normal, 2 = half fps):</label>
+<input type="number" id="skip" value="2" min="1"><br><br>
+
+<button onclick="optimize()">Optimize</button>
+
+<br><br>
+<canvas id="canvas"></canvas><br><br>
+<a id="download" style="color:lime"></a>
+
+<script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+
+<script>
+async function optimize() {
+  const file = document.getElementById("upload").files[0];
+  if (!file) return alert("Upload a GIF first!");
+
+  const colors = parseInt(document.getElementById("colors").value);
+  const scale = parseFloat(document.getElementById("scale").value);
+  const skip = parseInt(document.getElementById("skip").value);
+
+  const buffer = await file.arrayBuffer();
+  const gif = window.gifuct.parseGIF(buffer);
+  const frames = window.gifuct.decompressFrames(gif, true);
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const width = frames[0].dims.width * scale;
+  const height = frames[0].dims.height * scale;
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const encoder = new GIF({
+    workers: 2,
+    quality: 30,
+    width: width,
+    height: height
+  });
+
+  frames.forEach((frame, i) => {
+    if (i % skip !== 0) return;
+
+    const imageData = ctx.createImageData(frame.dims.width, frame.dims.height);
+    imageData.data.set(frame.patch);
+    ctx.putImageData(imageData, 0, 0);
+
+    const tempCanvas = document.createElement("canvas");
+    const tctx = tempCanvas.getContext("2d");
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    tctx.drawImage(canvas, 0, 0, width, height);
+
+    encoder.addFrame(tctx, { delay: frame.delay || 100 });
+  });
+
+  encoder.on("finished", function(blob) {
+    const url = URL.createObjectURL(blob);
+    const link = document.getElementById("download");
+    link.href = url;
+    link.download = "optimized.gif";
+    link.innerText = "Download Optimized GIF";
+  });
+
+  encoder.render();
+}
+</script>
+
+</body>
+</html>
